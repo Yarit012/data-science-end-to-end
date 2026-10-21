@@ -1,0 +1,11 @@
+services:
+  semana08:
+    build: .
+    image: semana08
+    container_name: semana08-dev
+    working_dir: /app/laboratorios/semana-08-sesion-02
+    volumes:
+      - .:/app
+    command: python -i
+    stdin_open: true
+    tty: true
