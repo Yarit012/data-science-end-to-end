@@ -15,7 +15,7 @@ from preparacion_pagos import agregar_features, columnas, preparacion
 
 RUTA_MODELO = "modelo_fraude.joblib"
 
-pagos = agregar_features(pd.read_csv("pagos_taxi.csv"))
+pagos = agregar_features(pd.read_csv("laboratorios/semana-12-sesion-01/starter/ejercicio2/pagos_taxi.csv"))
 modelo = Pipeline([("preparar", preparacion()), ("modelo", GradientBoostingClassifier(random_state=42))])
 modelo.fit(columnas(pagos), pagos["es_fraude"])
 

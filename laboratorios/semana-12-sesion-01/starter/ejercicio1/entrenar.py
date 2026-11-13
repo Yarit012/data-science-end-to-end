@@ -18,7 +18,7 @@ from preparacion_taxis import CATEGORICAS, NUMERICAS, OBJETIVO, YA_LISTAS, prepa
 
 RUTA_MODELO = "modelo_tarifa.joblib"
 
-viajes = pd.read_csv("viajes_features.csv")
+viajes = pd.read_csv("laboratorios/semana-12-sesion-01/starter/ejercicio1/viajes_features.csv")
 modelo = Pipeline([
     ("preparar", preparacion()),
     ("modelo", MLPRegressor(hidden_layer_sizes=(64,), max_iter=1000, random_state=42)),
