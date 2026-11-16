@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 # Python
 __pycache__/
 *.pyc
@@ -46,3 +47,49 @@ mlartifacts/
 
 # Material reemplazado (no se sube)
 _to_delete/
+=======
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Datos y modelos locales (nunca se suben, ver PSets para dónde documentar su origen)
+data/raw/
+data/processed/
+*.pkl
+
+# Editor / OS
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+
+# Logs
+*.log
+
+# Terraform (el estado guarda las credenciales en texto plano: nunca se sube)
+.terraform/
+*.tfstate
+*.tfstate.*
+
+# Warehouse local de DuckDB (se regenera al correr cada laboratorio)
+*.duckdb
+*.duckdb.wal
+
+# dbt y Spark (artefactos que se regeneran al correr)
+target/
+dbt_packages/
+spark-warehouse/
+metastore_db/
+derby.log
+
+# Registro de MLflow: el del servidor del Codespace (.mlflow/) y el local si trabajas
+# sin servidor (mlruns/). Cada estudiante lo regenera al correr; pesa decenas de MB.
+.mlflow/
+mlruns/
+mlartifacts/
+
+# Material reemplazado (no se sube)
+_to_delete/
+>>>>>>> Stashed changes

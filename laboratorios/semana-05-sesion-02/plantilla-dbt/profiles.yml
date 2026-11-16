@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 # TODO: reemplaza por el nombre de tu perfil (debe coincidir con "profile" de dbt_project.yml)
 # y por la ruta del archivo .duckdb que ya construiste en la Sesion 1. dbt corre desde
 # warehouse/dbt/ y el .duckdb queda en warehouse/: la ruta empieza con ../
@@ -7,3 +8,13 @@ proyecto_dbt:
     dev:
       type: duckdb
       path: ../TODO.duckdb
+=======
+# TODO: reemplaza por el nombre de tu perfil (debe coincidir con "profile" de dbt_project.yml)
+# y por la ruta del archivo .duckdb que ya construiste en la Sesion 1.
+proyecto_dbt:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: TODO.duckdb
+>>>>>>> Stashed changes

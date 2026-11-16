@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 {
   // Ambiente del curso, igual en GitHub Codespaces y en VS Code local ("Reopen in Container").
   // Referencia: https://containers.dev/implementors/json_reference/
@@ -81,3 +82,82 @@
 
   "remoteUser": "vscode"
 }
+=======
+{
+  // Ambiente del curso, igual en GitHub Codespaces y en VS Code local ("Reopen in Container").
+  // Referencia: https://containers.dev/implementors/json_reference/
+  "name": "Fundamentos de Ciencia de Datos (USFQ)",
+  "image": "mcr.microsoft.com/devcontainers/python:3-3.11-bookworm",
+
+  // Docker-in-Docker (y no docker-outside-of-docker): los "docker run -v $(pwd)/...",
+  // el socket que monta Kestra y el provider de Docker de Terraform necesitan que las
+  // rutas y los puertos sean los de este contenedor.
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "17"
+    },
+    "ghcr.io/devcontainers/features/terraform:1": {}
+  },
+
+  // Minimo de Codespaces: la maquina de 2 nucleos (8 GB de RAM). Kestra y el
+  // laboratorio integrador piden cambiar a 4 nucleos en su README.
+  "hostRequirements": {
+    "cpus": 2,
+    "memory": "8gb",
+    "storage": "32gb"
+  },
+
+  "containerEnv": {
+    "SPARK_LOCAL_IP": "127.0.0.1",
+    "PIP_DISABLE_PIP_VERSION_CHECK": "1",
+    // Direccion del servidor de MLflow (Semana 11). MLflow la lee de esta variable,
+    // asi que los notebooks no la escriben: en una empresa apuntaria al servidor del equipo.
+    "MLFLOW_TRACKING_URI": "http://127.0.0.1:5050"
+  },
+  "remoteEnv": {
+    "PATH": "${containerEnv:PATH}:/home/vscode/.local/bin"
+  },
+
+  "forwardPorts": [8080, 8085, 5050],
+  "portsAttributes": {
+    "8080": { "label": "Kestra (Semana 4)", "onAutoForward": "notify" },
+    "8085": { "label": "pgAdmin (Semana 3)", "onAutoForward": "notify" },
+    "5050": { "label": "MLflow (Semana 11)", "onAutoForward": "notify" },
+    "5432": { "label": "Postgres", "onAutoForward": "silent" },
+    "9092": { "label": "Redpanda / Kafka (Semana 6)", "onAutoForward": "silent" }
+  },
+
+  // La instalacion pesada va en onCreateCommand (compatible con prebuilds de Codespaces);
+  // la verificacion corre despues y se puede repetir a mano: bash .devcontainer/verificar.sh
+  // El servidor de MLflow se levanta cada vez que inicia el contenedor (tambien despues
+  // de detener el Codespace), porque los procesos no sobreviven a un reinicio.
+  "onCreateCommand": "bash .devcontainer/on-create.sh",
+  "postCreateCommand": "bash .devcontainer/verificar.sh",
+  "postStartCommand": "bash .devcontainer/mlflow-server.sh",
+
+  "customizations": {
+    "codespaces": {
+      "openFiles": ["README.md"]
+    },
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-toolsai.jupyter",
+        "ms-azuretools.vscode-docker",
+        "hashicorp.terraform",
+        "mechatroner.rainbow-csv"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.terminal.activateEnvironment": false,
+        // Cada notebook corre desde su propia carpeta: pd.read_csv("datos.csv")
+        // y "from preparacion_taxis import ..." encuentran los archivos de al lado.
+        "jupyter.notebookFileRoot": "${fileDirname}"
+      }
+    }
+  },
+
+  "remoteUser": "vscode"
+}
+>>>>>>> Stashed changes

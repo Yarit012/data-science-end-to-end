@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 # Tu proyecto y sus cuatro PSets
 
 Durante el semestre construyes un solo proyecto de ciencia de datos, y cada PSet entrega la siguiente etapa del mismo proyecto. El código, los datos y los documentos viven en una sola carpeta, [`proyecto/`](./proyecto/), organizada como la organizaría un equipo de datos: cualquiera que clone tu fork encuentra cada pieza en el mismo lugar. Las carpetas `pset-01/` a `pset-04/` traen el enunciado y la rúbrica de cada entrega; tu trabajo no va ahí, va en `proyecto/`.
@@ -59,3 +60,10 @@ git push origin pset-02
 Califico el proyecto tal como quedó en ese tag. Como el proyecto sigue creciendo después de cada entrega, el tag deja fija la versión que corresponde a cada PSet: lo que cambies después cuenta para el siguiente, no para este. Si necesitas corregir algo antes de la fecha de entrega, mueve el tag con `git tag -f pset-02` y `git push -f origin pset-02`.
 
 Antes de marcar el tag, reinicia el kernel y corre todo (**Restart** y después **Run All**) en cada notebook de la entrega, y comprueba que cada script corre desde una terminal nueva.
+=======
+# PSets
+
+Aquí van tus entregas de PSet, una carpeta por PSet: `pset-01/`, `pset-02/`, etc. Cada PSet se agrega a este repositorio (con su enunciado y su `README.md`) cuando se asigna en el cronograma del curso.
+
+PSet 5 es el proyecto final: se entrega igual que los demás, sin sesiones dedicadas.
+>>>>>>> Stashed changes
