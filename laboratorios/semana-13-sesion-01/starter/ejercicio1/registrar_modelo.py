@@ -29,13 +29,25 @@ viajes = pd.read_csv("viajes_features.csv")
 X_entrenamiento, X_prueba, y_entrenamiento, y_prueba = dividir(viajes)
 
 mlflow.set_experiment("tarifa-taxis-registro")
+
 with mlflow.start_run(run_name=f"red-{neuronas}"):
     modelo = Pipeline([
         ("preparar", preparacion()),
-        ("modelo", MLPRegressor(hidden_layer_sizes=(neuronas,), max_iter=1000, random_state=42)),
+        (
+            "modelo",
+            MLPRegressor(
+                hidden_layer_sizes=(neuronas,),
+                max_iter=1000,
+                random_state=42,
+            ),
+        ),
     ])
+
     modelo.fit(X_entrenamiento, y_entrenamiento)
-    mae = mean_absolute_error(y_prueba, modelo.predict(X_prueba))
+
+    predicciones = modelo.predict(X_prueba)
+    mae = mean_absolute_error(y_prueba, predicciones)
+
     mlflow.log_param("neuronas", neuronas)
     mlflow.log_metric("mae", mae)
 
@@ -44,6 +56,15 @@ with mlflow.start_run(run_name=f"red-{neuronas}"):
     # registered_model_name=NOMBRE. log_model devuelve informacion del
     # modelo: su atributo registered_model_version es el numero de la
     # version nueva.
-    version = None
+    informacion = mlflow.sklearn.log_model(
+        sk_model=modelo,
+        artifact_path="modelo",
+        registered_model_name=NOMBRE,
+    )
 
-print(f"Version {version} de {NOMBRE}: red de {neuronas} neuronas, MAE {mae:.4f}")
+    version = informacion.registered_model_version
+
+print(
+    f"Version {version} de {NOMBRE}: "
+    f"red de {neuronas} neuronas, MAE {mae:.4f}"
+)

@@ -36,12 +36,21 @@ UMBRAL = 0.10
 
 def datos():
     pagos = agregar_features(pd.read_csv("pagos_taxi.csv"))
-    return train_test_split(columnas(pagos), pagos["es_fraude"], test_size=0.2, random_state=42, stratify=pagos["es_fraude"])
+    return train_test_split(
+        columnas(pagos),
+        pagos["es_fraude"],
+        test_size=0.2,
+        random_state=42,
+        stratify=pagos["es_fraude"],
+    )
 
 
 def evaluar(modelo, X_prueba, y_prueba):
     alertas = modelo.predict_proba(X_prueba)[:, 1] >= UMBRAL
-    return {"recall": recall_score(y_prueba, alertas), "precision": precision_score(y_prueba, alertas)}
+    return {
+        "recall": recall_score(y_prueba, alertas),
+        "precision": precision_score(y_prueba, alertas),
+    }
 
 
 def registrar(modelo, nombre_corrida, metricas):
@@ -51,7 +60,16 @@ def registrar(modelo, nombre_corrida, metricas):
     # metricas (mlflow.log_metrics) y el modelo con
     # mlflow.sklearn.log_model(modelo, "modelo", registered_model_name=NOMBRE).
     # Devuelve el numero de version, como int.
-    return None
+    with mlflow.start_run(run_name=nombre_corrida):
+        mlflow.log_metrics(metricas)
+
+        informacion = mlflow.sklearn.log_model(
+            modelo,
+            "modelo",
+            registered_model_name=NOMBRE,
+        )
+
+        return int(informacion.registered_model_version)
 
 
 def metrica_de(version, metrica):
@@ -59,14 +77,32 @@ def metrica_de(version, metrica):
     # TODO 2: la version sabe de que corrida salio
     # (MlflowClient().get_model_version(NOMBRE, version).run_id), y la
     # corrida guarda sus metricas (get_run(run_id).data.metrics).
-    return None
+    cliente = MlflowClient()
+
+    version_registrada = cliente.get_model_version(
+        NOMBRE,
+        str(version),
+    )
+
+    corrida = cliente.get_run(version_registrada.run_id)
+
+    return corrida.data.metrics[metrica]
 
 
 def version_en_produccion():
     """El numero de la version con el alias ALIAS, o None si ninguna lo tiene."""
     # TODO 3: get_model_version_by_alias lanza MlflowException si el alias
     # no existe todavia (o si el modelo no existe).
-    return None
+    cliente = MlflowClient()
+
+    try:
+        version = cliente.get_model_version_by_alias(
+            NOMBRE,
+            ALIAS,
+        )
+        return int(version.version)
+    except MlflowException:
+        return None
 
 
 def promover_si_mejora(version):
@@ -79,28 +115,71 @@ def promover_si_mejora(version):
     # Decide si la version mejora a la de produccion: mejora si no hay
     # ninguna, o si su recall es estrictamente mayor. Si mejora, mueve el
     # alias con set_registered_model_alias.
-    mejora = False
+    mejora = (
+        actual is None
+        or metrica_de(version, "recall") > metrica_de(actual, "recall")
+    )
+
+    if mejora:
+        cliente.set_registered_model_alias(
+            NOMBRE,
+            ALIAS,
+            str(version),
+        )
 
     # Etiqueta la version (set_model_version_tag) con la clave "validacion"
     # y el valor "aprobada" o "rechazada", y con la clave "comparada_con"
     # y el numero de la version de produccion contra la que se comparo, o
     # "ninguna".
+    cliente.set_model_version_tag(
+        NOMBRE,
+        str(version),
+        "validacion",
+        "aprobada" if mejora else "rechazada",
+    )
+
+    cliente.set_model_version_tag(
+        NOMBRE,
+        str(version),
+        "comparada_con",
+        str(actual) if actual is not None else "ninguna",
+    )
+
     return mejora
 
 
 if __name__ == "__main__":
     mlflow.set_experiment("fraude-pagos-ciclo")
     X_entrenamiento, X_prueba, y_entrenamiento, y_prueba = datos()
+
     candidatos = [
         ("logistica", LogisticRegression(max_iter=1000)),
-        ("gradient-boosting", GradientBoostingClassifier(random_state=42)),
-        ("logistica-muy-regularizada", LogisticRegression(C=0.001, max_iter=1000)),
+        (
+            "gradient-boosting",
+            GradientBoostingClassifier(random_state=42),
+        ),
+        (
+            "logistica-muy-regularizada",
+            LogisticRegression(C=0.001, max_iter=1000),
+        ),
     ]
+
     for nombre, estimador in candidatos:
-        modelo = Pipeline([("preparar", preparacion()), ("modelo", estimador)])
+        modelo = Pipeline([
+            ("preparar", preparacion()),
+            ("modelo", estimador),
+        ])
+
         modelo.fit(X_entrenamiento, y_entrenamiento)
         metricas = evaluar(modelo, X_prueba, y_prueba)
         version = registrar(modelo, nombre, metricas)
         promovida = promover_si_mejora(version)
-        print(f"{nombre}: version {version}, recall {metricas['recall']:.3f}, precision {metricas['precision']:.3f}, promovida: {promovida}")
+
+        print(
+            f"{nombre}: version {version}, "
+            f"recall {metricas['recall']:.3f}, "
+            f"precision {metricas['precision']:.3f}, "
+            f"promovida: {promovida}"
+        )
+
     print(f"En produccion: version {version_en_produccion()}")

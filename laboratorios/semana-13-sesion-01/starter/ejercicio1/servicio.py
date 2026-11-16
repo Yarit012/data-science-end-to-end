@@ -33,7 +33,18 @@ if os.environ.get("CARGAR_MODELO", "si") == "si":
     # (MlflowClient().get_model_version_by_alias(NOMBRE, ALIAS)), guarda su
     # numero en version_servida y carga el modelo de esa version con
     # mlflow.sklearn.load_model(f"models:/{NOMBRE}/{version_servida}").
-    pass
+    cliente = MlflowClient()
+
+    version_registrada = cliente.get_model_version_by_alias(
+        NOMBRE,
+        ALIAS,
+    )
+
+    version_servida = version_registrada.version
+
+    modelo = mlflow.sklearn.load_model(
+        f"models:/{NOMBRE}/{version_servida}"
+    )
 
 app = FastAPI(title="Tarifa estimada de taxis")
 
@@ -50,13 +61,26 @@ class Viaje(BaseModel):
 
 @app.get("/salud")
 def salud():
-    return {"estado": "ok", "modelo_cargado": modelo is not None, "version_modelo": version_servida}
+    return {
+        "estado": "ok",
+        "modelo_cargado": modelo is not None,
+        "version_modelo": version_servida,
+    }
 
 
 @app.post("/predecir")
 def predecir(viaje: Viaje):
-    datos = agregar_features(pd.DataFrame([viaje.model_dump()]))
-    tarifa = modelo.predict(datos[NUMERICAS + YA_LISTAS + CATEGORICAS])[0]
+    datos = agregar_features(
+        pd.DataFrame([viaje.model_dump()])
+    )
+
+    tarifa = modelo.predict(
+        datos[NUMERICAS + YA_LISTAS + CATEGORICAS]
+    )[0]
+
     # TODO 4: agrega a la respuesta "version_modelo", con version_servida: quien
     # reciba una tarifa tiene que poder saber que modelo la calculo.
-    return {"tarifa_estimada": round(float(tarifa), 2)}
+    return {
+        "tarifa_estimada": round(float(tarifa), 2),
+        "version_modelo": version_servida,
+    }
